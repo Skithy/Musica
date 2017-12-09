@@ -1,5 +1,4 @@
 import Phaser from 'phaser'
-import Mushroom from '../sprites/Mushroom'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
 
 const FFTSize = 2048
@@ -30,6 +29,36 @@ export default class extends Phaser.State {
     this.stream = null
     this.microphone = null
     this.frequencyBuffer = new Float32Array(FFTSize)
+
+    this.notesdata = {
+      26: { colour: 0x880000, pos: 250, note: 'B' },
+      27: { colour: 0xFF0000, pos: 235, note: 'C' }, // Middle C
+      28: { colour: 0x008800, pos: 235, note: 'C#' },
+      29: { colour: 0x888800, pos: 220, note: 'D' },
+      30: { colour: 0xFF8800, pos: 220, note: 'D#' },
+      31: { colour: 0x00FF00, pos: 205, note: 'E' },
+      32: { colour: 0x88FF00, pos: 190, note: 'F' },
+      33: { colour: 0xFFFF00, pos: 190, note: 'F#' },
+      34: { colour: 0x000088, pos: 175, note: 'G' },
+      35: { colour: 0x880088, pos: 175, note: 'G#' },
+      36: { colour: 0xFF0088, pos: 160, note: 'A' },
+      37: { colour: 0x008888, pos: 160, note: 'A#' },
+      38: { colour: 0x888888, pos: 145, note: 'B' },
+      39: { colour: 0xFF8888, pos: 130, note: 'C' }, // Better C
+      40: { colour: 0x00FF88, pos: 130, note: 'C#' },
+      41: { colour: 0x88FF88, pos: 115, note: 'D' },
+      42: { colour: 0xFFFF88, pos: 115, note: 'D#' },
+      43: { colour: 0x0000FF, pos: 100, note: 'E' },
+      44: { colour: 0x8800FF, pos: 85, note: 'F' },
+      45: { colour: 0xFF00FF, pos: 85, note: 'F#' },
+      46: { colour: 0x0088FF, pos: 70, note: 'G' },
+      47: { colour: 0x8888FF, pos: 70, note: 'G#' },
+      48: { colour: 0xFF88FF, pos: 55, note: 'A' },
+      49: { colour: 0x00FFFF, pos: 55, note: 'A#' },
+      50: { colour: 0x88FFFF, pos: 40, note: 'B' }
+    }
+
+    // Load sprites
   }
 
   create () {
@@ -42,14 +71,21 @@ export default class extends Phaser.State {
     this.banner.smoothed = false
     this.banner.anchor.setTo(0.5)
 
-    this.mushroom = new Mushroom({
-      game: this.game,
-      x: this.world.centerX,
-      y: this.world.centerY,
-      asset: 'mushroom'
-    })
+    this.staticgfx = this.add.graphics(0, 0)
+    this.staticgfx.beginFill(0xFF0000)
+    this.staticgfx.lineStyle(2, 0x000000, 1)
+    this.gfx = this.add.graphics(0, 0)
+    this.staticgfx2 = this.add.graphics(0, 0)
+    this.staticgfx2.beginFill(0xFF0000)
+    this.staticgfx2.lineStyle(2, 0x000000, 1)
 
-    this.game.add.existing(this.mushroom)
+    for (let i = 0; i < 5; i++) {
+      this.staticgfx.moveTo(0, 100 + i * 30)
+      this.staticgfx.lineTo(this.world.width, 100 + i * 30)
+    }
+    this.staticgfx2.moveTo(100, 100)
+    this.staticgfx2.lineTo(100, 220)
+
     this.requestUserMedia()
   }
 
@@ -74,6 +110,8 @@ export default class extends Phaser.State {
   }
 
   render () {
+    this.gfx.clear()
+
     if (this.sendingAudioData === MIC_STATUS.REQUESTED) {
       this.banner.text = 'Waiting for microphone...'
     } else if (this.sendingAudioData === MIC_STATUS.DENIED) {
@@ -85,9 +123,21 @@ export default class extends Phaser.State {
       const { octave, note } = frequencyData(frequency)
 
       if (frequency === -1) {
+        // No note detected
         this.banner.text = 'Frequency: N/A  -  Octave: N/A  -  Note: N/A'
       } else {
+        // Note detected
         this.banner.text = `Frequency: ${frequency}  -  Octave: ${octave}  -  Note: ${note}`
+        
+        // Draw rect
+        const num = note + 12 * octave
+        if (num >= 26 && num <= 50) {
+          const data = this.notesdata[num]
+          this.gfx.beginFill(data.colour, 0.65)
+          this.gfx.lineStyle(2, data.colour, 1)
+          this.gfx.drawRect(0, data.pos + 2, this.world.width, 26)
+          this.gfx.endFill()
+        }
       }
     }
   }
