@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
+import { parseXML } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
@@ -15,6 +16,7 @@ const HITZone = 100
 var notes = [36, 37, 36, 37]
 
 export default class extends Phaser.State {
+<<<<<<< HEAD
 	// init -> preload -> create -> render loop
 	init () {
 		this.requestUserMedia = this.requestUserMedia.bind(this)
@@ -64,14 +66,16 @@ export default class extends Phaser.State {
 			50: { colour: 0x88FFFF, pos: 40, note: 'B' }
 		}
 
-		// Load sprites
-
 		// Set timer
 		this.time.create(false)
 		this.timeCounter = 0
 	}
 
 	create () {
+
+		this.parseXML()
+		this.requestUserMedia()
+
 		const bannerText = 'Loading...'
 		this.banner = this.add.text(this.world.centerX, this.game.height - 80, bannerText)
 		this.banner.font = 'Bangers'
@@ -81,6 +85,7 @@ export default class extends Phaser.State {
 		this.banner.smoothed = false
 		this.banner.anchor.setTo(0.5)
 
+		// Drawing stuff with canvas
 		this.staticgfx = this.add.graphics(0, 0)
 		this.staticgfx.beginFill(0xFF0000)
 		this.staticgfx.lineStyle(2, 0x000000, 1)
@@ -96,7 +101,6 @@ export default class extends Phaser.State {
 		this.staticgfx2.moveTo(100, 100)
 		this.staticgfx2.lineTo(100, 220)
 
-		this.requestUserMedia()
 
 		// Set time to iterate every 1/16th second (each beat)
 //		this.time.loop(1000/16, this.timeCounter++, this)
@@ -123,6 +127,14 @@ export default class extends Phaser.State {
 		this.timerText = this.add.text(0,0, this.time)
 	}
 
+	parseXML () {
+		const xmlText = this.cache.getText('musicxml')
+		const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
+		console.log(xml)
+		const musicData = parseXML(xml)
+	}
+
+
 	async requestUserMedia () {
 		try {
 			// Try get user's microphone stream
@@ -139,6 +151,7 @@ export default class extends Phaser.State {
 			// Successfully connected, starting the app
 			this.sendingAudioData = MIC_STATUS.ALLOWED
 		} catch (err) {
+			// Microphone rejected
 			this.sendingAudioData = MIC_STATUS.DENIED
 		}
 	}
