@@ -57,13 +57,13 @@ export default class extends Phaser.State {
       49: { colour: 0x00FFFF, pos: 55, note: 'A#' },
       50: { colour: 0x88FFFF, pos: 40, note: 'B' }
     }
-
-    // Load sprites
   }
 
   create () {
-    const bannerText = 'Loading...'
-    this.banner = this.add.text(this.world.centerX, this.game.height - 80, bannerText)
+    this.parseXML()
+    this.requestUserMedia()
+
+    this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...')
     this.banner.font = 'Bangers'
     this.banner.padding.set(10, 16)
     this.banner.fontSize = 40
@@ -71,6 +71,7 @@ export default class extends Phaser.State {
     this.banner.smoothed = false
     this.banner.anchor.setTo(0.5)
 
+    // Drawing stuff with canvas
     this.staticgfx = this.add.graphics(0, 0)
     this.staticgfx.beginFill(0xFF0000)
     this.staticgfx.lineStyle(2, 0x000000, 1)
@@ -85,8 +86,13 @@ export default class extends Phaser.State {
     }
     this.staticgfx2.moveTo(100, 100)
     this.staticgfx2.lineTo(100, 220)
+  }
 
-    this.requestUserMedia()
+  parseXML () {
+    const xmlText = this.cache.getText('xml')
+    const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
+    console.log(xml)
+    // XML -> array here
   }
 
   async requestUserMedia () {
@@ -105,6 +111,7 @@ export default class extends Phaser.State {
       // Successfully connected, starting the app
       this.sendingAudioData = MIC_STATUS.ALLOWED
     } catch (err) {
+      // Microphone rejected
       this.sendingAudioData = MIC_STATUS.DENIED
     }
   }
