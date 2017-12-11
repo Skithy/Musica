@@ -1,5 +1,6 @@
 import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
+import { parseXML } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
@@ -89,10 +90,11 @@ export default class extends Phaser.State {
   }
 
   parseXML () {
-    const xmlText = this.cache.getText('xml')
+    const xmlText = this.cache.getText('musicxml')
     const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
     console.log(xml)
-    // XML -> array here
+    const musicData = parseXML(xml)
+
   }
 
   async requestUserMedia () {

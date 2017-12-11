@@ -31,7 +31,7 @@ export default class extends Phaser.State {
     const url = await fileRef.getDownloadURL()
     const response = await fetch(url)
     const text = await response.text()
-    this.cache.addText('xml', null, text)
+    this.cache.addText('musicxml', null, text)
     this.fileDownloaded = true
   }
 }
