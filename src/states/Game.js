@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
 import { parseMusicXML, octaveNoteToValue } from '../musicXMLParser'
 
+
 const FFTSize = 2048
 const MIC_STATUS = {
 	REQUESTED: 0,
@@ -11,9 +12,12 @@ const MIC_STATUS = {
 const OFFScreen = 40
 const HITSize = 4
 const HITZone = 100
+const BOX_SIZE = 10
 
 // Test data
 var notes = [36, 37, 36, 37]
+var beatSize = 4
+var hackyTimeFix = 0
 
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
