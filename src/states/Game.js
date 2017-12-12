@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
-import { parseXML } from '../musicXMLParser'
+import { parseMusicXML } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
@@ -12,6 +12,7 @@ const MIC_STATUS = {
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
   init () {
+    this.getMusicData = this.getMusicData.bind(this)
     this.requestUserMedia = this.requestUserMedia.bind(this)
   }
 
@@ -61,7 +62,7 @@ export default class extends Phaser.State {
   }
 
   create () {
-    this.parseXML()
+    this.getMusicData()
     this.requestUserMedia()
 
     this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...')
@@ -89,12 +90,11 @@ export default class extends Phaser.State {
     this.staticgfx2.lineTo(100, 220)
   }
 
-  parseXML () {
+  getMusicData () {
     const xmlText = this.cache.getText('musicxml')
     const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
-    console.log(xml)
-    const musicData = parseXML(xml)
-
+    const musicData = parseMusicXML(xml)
+    console.log(musicData)
   }
 
   async requestUserMedia () {
