@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
-import { parseXML } from '../musicXMLParser'
+import { parseMusicXML } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
@@ -16,9 +16,9 @@ const HITZone = 100
 var notes = [36, 37, 36, 37]
 
 export default class extends Phaser.State {
-<<<<<<< HEAD
 	// init -> preload -> create -> render loop
 	init () {
+		this.getMusicData = this.getMusicData.bind(this)
 		this.requestUserMedia = this.requestUserMedia.bind(this)
 	}
 
@@ -67,17 +67,16 @@ export default class extends Phaser.State {
 		}
 
 		// Set timer
-		this.time.create(false)
-		this.timeCounter = 0
+		//this.time.create(false)
+		//this.timeCounter = 0
+
 	}
 
 	create () {
-
-		this.parseXML()
+		this.getMusicData()
 		this.requestUserMedia()
 
-		const bannerText = 'Loading...'
-		this.banner = this.add.text(this.world.centerX, this.game.height - 80, bannerText)
+		this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...')
 		this.banner.font = 'Bangers'
 		this.banner.padding.set(10, 16)
 		this.banner.fontSize = 40
@@ -101,15 +100,14 @@ export default class extends Phaser.State {
 		this.staticgfx2.moveTo(100, 100)
 		this.staticgfx2.lineTo(100, 220)
 
-
 		// Set time to iterate every 1/16th second (each beat)
-//		this.time.loop(1000/16, this.timeCounter++, this)
-		this.time.start
+		//this.time.loop(1000/16, this.timeCounter++, this)
+		//this.time.start
 
 		// set box in static location
 		this.testBox = game.add.graphics(this.world.width + OFFScreen,115)
-		this.testBox.beginFill(0xffffff)
-		this.testBox.lineStyle(10, 0x000000, 1)
+		this.testBox.beginFill(0x00ffff)
+		this.testBox.lineStyle(10, 0x000234, 1)
 		this.testBox.drawRect(10, 10, 10, 10)	
 
 		// Box appears when timing is correct 
@@ -124,16 +122,16 @@ export default class extends Phaser.State {
 		this.metroCircle.lineStyle(1, 0x000000, 1)
 		this.metroCircle.drawCircle(50, 50, 20)
 
-		this.timerText = this.add.text(0,0, this.time)
+		//this.timerText = this.add.text(0,0, this.time)
+
 	}
 
-	parseXML () {
+	getMusicData () {
 		const xmlText = this.cache.getText('musicxml')
 		const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
-		console.log(xml)
-		const musicData = parseXML(xml)
+		const musicData = parseMusicXML(xml)
+		console.log(musicData)
 	}
-
 
 	async requestUserMedia () {
 		try {
@@ -156,27 +154,29 @@ export default class extends Phaser.State {
 		}
 	}
 
+/*
 	// Converts array of numbers representing notesdata into position values
 	arrayConvert (songArr, currTime) {
 		var note = songArr[currTime]
 		var dict = this.notesdata[note]
 		return dict.pos
 	}
+*/
 
 	// Iterates through one beat
 //	beatIterate () {
 //		this.timeCounter ++
 //	} 
 
+
 	render () {
 		this.gfx.clear()
-
-		this.testBox.x -= 13
-
 		// Removes previous draw and redraws when needed
 		this.hitBox.clear()
 		this.hitBox.beginFill(0xffe500)
 		this.hitBox.lineStyle(10, 0xfffb42, 1)
+
+		this.testBox.x -= 11
 
 		// Resets moving box to right of screen (TESTING PURPOSES)
 		if (this.testBox.x < -OFFScreen) {
@@ -192,8 +192,7 @@ export default class extends Phaser.State {
 		}
 		
 		// Display time
-		//this.timerText.text('Time now: ' + this.time.totalElapsedSeconds(), 32, 32)
-				
+		//this.debug.text('Time now: ' + this.time.totalElapsedSeconds(), 32, 32)
 
 		if (this.sendingAudioData === MIC_STATUS.REQUESTED) {
 			this.banner.text = 'Waiting for microphone...'
@@ -211,6 +210,7 @@ export default class extends Phaser.State {
 			} else {
 				// Note detected
 				this.banner.text = `Frequency: ${frequency}	-	Octave: ${octave}	-	Note: ${note}`
+				
 				// Draw rect
 				const num = note + 12 * octave
 				if (num >= 26 && num <= 50) {
@@ -219,8 +219,6 @@ export default class extends Phaser.State {
 					this.gfx.lineStyle(2, data.colour, 1)
 					this.gfx.drawRect(0, data.pos + 2, this.world.width, 26)
 					this.gfx.endFill()
-
-
 				}
 			}
 		}
