@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
-import { parseMusicXML } from '../musicXMLParser'
+import { parseMusicXML, octaveNoteToValue } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
@@ -93,8 +93,11 @@ export default class extends Phaser.State {
   getMusicData () {
     const xmlText = this.cache.getText('musicxml')
     const xml = (new DOMParser()).parseFromString(xmlText, 'text/xml')
-    const musicData = parseMusicXML(xml)
-    console.log(musicData)
+    const { musicData, timeSignature } = parseMusicXML(xml)
+    this.musicData = musicData
+    this.timeSignature = timeSignature
+    console.log(this.musicData)
+    console.log(this.timeSignature)
   }
 
   async requestUserMedia () {
@@ -139,7 +142,7 @@ export default class extends Phaser.State {
         this.banner.text = `Frequency: ${frequency}  -  Octave: ${octave}  -  Note: ${note}`
         
         // Draw rect
-        const num = note + 12 * octave
+        const num = octaveNoteToValue(octave, note)
         if (num >= 26 && num <= 50) {
           const data = this.notesdata[num]
           this.gfx.beginFill(data.colour, 0.65)
