@@ -13,11 +13,10 @@ const OFFScreen = 40
 const HITSize = 4
 const HITZone = 100
 const BOX_SIZE = 10
-
+const BPS = 12
 // Test data
-var notes = [36, 37, 36, 37]
+var notes = [36, 48, 0, 50]
 var beatSize = 4
-var hackyTimeFix = 0
 
 export default class extends Phaser.State {
 	// init -> preload -> create -> render loop
@@ -73,10 +72,8 @@ export default class extends Phaser.State {
 		// Set timer
 		//this.time.create(false)
 		//this.timeCounter = 0
-
-		// Set beat counter
+		
 		this.beats = 0
-
 	}
 
 	create () {
@@ -123,12 +120,14 @@ export default class extends Phaser.State {
 		this.hitBox = game.add.graphics(100, 0)
 
 		// Incoming notes
-		this.playBox = game.add.graphics(this.world.width + OFFScreen, 0)
-		this.testBox.lineStyle(10, 0x000234, 1)
-		this.testBox.beginFill(0x00ffff)
+		this.playBox = game.add.graphics(this.world.width,0) //+ OFFScreen, 0)
+		this.playBox.lineStyle(10, 0x000234, 1)
+		this.playBox.beginFill(0x00ffff)
 		
 		// Metronome circle showing beats
 		this.metroCircle = game.add.graphics(0,0)
+		this.metroCircle.beginFill(0x000000)
+		this.metroCircle.lineStyle(1, 0x000000, 1)
 
 		this.timerText = this.add.text(0, 0, ' ')
 
@@ -181,7 +180,7 @@ export default class extends Phaser.State {
 		// Removes previous draw and redraws when needed
 		this.gfx.clear()
 		this.hitBox.clear()
-		this.metroCircle.clear()		
+		
 		// Display time
 		//this.debug.text('Time now: ' + this.time.totalElapsedSeconds(), 32, 32)
 
@@ -213,37 +212,27 @@ export default class extends Phaser.State {
 				}
 			}
 			this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds()}`
-
-			var beatCounter = (this.time.totalElapsedSeconds() * 16)
-			if (beatCounter % 1 == 0 ) {
-				this.beats++
-				this.metroCircle.beginFill(0x0ff000)
-				this.metroCircle.lineStyle(1, 0x000ff0, 1)
-				this.metroCircle.drawCircle(50, 50, 30)
-			}
-			else {
-				this.metroCircle.beginFill(0x0ff000)
-				this.metroCircle.lineStyle(1, 0x000ff0, 1)
-				this.metroCircle.drawCircle(50, 50, 20)
-			}
-
-			this.beatText.text = `Beat: ${this.beats} `
+			var beatCounter = Math.floor(this.time.totalElapsedSeconds() * BPS)
+			this.beats = beatCounter
+			this.beatText.text = `Beat: ${beatCounter} `
 
 			this.hitBox.beginFill(0xffe500)
 			this.hitBox.lineStyle(10, 0xfffb42, 1)
 
-			this.playBox.x = -7
+			this.playBox.x =  7
 
 			this.testBox.x -= 11
 
 			// Determines position of incoming boxes and draws them
 			// Replace with time events when possible
-			var spawnPos = 27//arrayConvert(notes, beatSize, beatCounter)
-			
+			var spawnPos = 37 // <-- Should be value taken from interpreting array
+			var spawnPos = notes[this.beats%beatSize]
 
 			if (spawnPos != 0) {
-				var noteGroup = this.notesdata[spawnPos] 
-				this.playBox.drawRect(10,10,10,10)//0, noteGroup.pos, BOX_SIZE, noteGroup.pos + BOX_SIZE)
+				//this.playBox.x = this.world.width
+				var lane = this.notesdata[spawnPos].pos 
+				this.playBox.drawRect(0, lane, BOX_SIZE, BOX_SIZE)
+//				this.playBox.drawRect(10,10,10,20)
 			}
 
 			// Resets moving box to right of screen (TESTING PURPOSES)
