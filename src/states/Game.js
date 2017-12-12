@@ -13,11 +13,10 @@ const OFFScreen = 40
 const HITSize = 4
 const HITZone = 100
 const BOX_SIZE = 10
-
+const BPS = 12
 // Test data
-var notes = [36, 37, 36, 37]
+var notes = [36, 48, 0, 50]
 var beatSize = 4
-var hackyTimeFix = 0
 
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
