@@ -2,6 +2,7 @@ import Phaser from 'phaser'
 import { autoCorrelateAudioData, frequencyData } from '../pitchDetection'
 import { parseMusicXML } from '../musicXMLParser'
 
+
 const FFTSize = 2048
 const MIC_STATUS = {
 	REQUESTED: 0,
@@ -11,9 +12,12 @@ const MIC_STATUS = {
 const OFFScreen = 40
 const HITSize = 4
 const HITZone = 100
+const BOX_SIZE = 10
 
 // Test data
 var notes = [36, 37, 36, 37]
+var beatSize = 4
+var hackyTimeFix = 0
 
 export default class extends Phaser.State {
 	// init -> preload -> create -> render loop
@@ -70,6 +74,9 @@ export default class extends Phaser.State {
 		//this.time.create(false)
 		//this.timeCounter = 0
 
+		// Set beat counter
+		this.beats = 0
+
 	}
 
 	create () {
@@ -83,6 +90,8 @@ export default class extends Phaser.State {
 		this.banner.fill = '#77BFA3'
 		this.banner.smoothed = false
 		this.banner.anchor.setTo(0.5)
+
+
 
 		// Drawing stuff with canvas
 		this.staticgfx = this.add.graphics(0, 0)
@@ -114,16 +123,16 @@ export default class extends Phaser.State {
 		this.hitBox = game.add.graphics(100, 0)
 
 		// Incoming notes
-		this.playBox = game.add.graphics(100, 0)
+		this.playBox = game.add.graphics(this.world.width + OFFScreen, 0)
+		this.testBox.lineStyle(10, 0x000234, 1)
+		this.testBox.beginFill(0x00ffff)
 		
 		// Metronome circle showing beats
 		this.metroCircle = game.add.graphics(0,0)
-		this.metroCircle.beginFill(0x000000)
-		this.metroCircle.lineStyle(1, 0x000000, 1)
-		this.metroCircle.drawCircle(50, 50, 20)
 
-		//this.timerText = this.add.text(0,0, this.time)
+		this.timerText = this.add.text(0, 0, ' ')
 
+		this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ')
 	}
 
 	getMusicData () {
@@ -154,14 +163,13 @@ export default class extends Phaser.State {
 		}
 	}
 
-/*
+
 	// Converts array of numbers representing notesdata into position values
-	arrayConvert (songArr, currTime) {
-		var note = songArr[currTime]
+	arrayConvert (songArr, beatMax, currTime) {
+		var note = songArr[currTime%beatMax]
 		var dict = this.notesdata[note]
 		return dict.pos
 	}
-*/
 
 	// Iterates through one beat
 //	beatIterate () {
@@ -170,27 +178,10 @@ export default class extends Phaser.State {
 
 
 	render () {
-		this.gfx.clear()
 		// Removes previous draw and redraws when needed
+		this.gfx.clear()
 		this.hitBox.clear()
-		this.hitBox.beginFill(0xffe500)
-		this.hitBox.lineStyle(10, 0xfffb42, 1)
-
-		this.testBox.x -= 11
-
-		// Resets moving box to right of screen (TESTING PURPOSES)
-		if (this.testBox.x < -OFFScreen) {
-			this.testBox.x = this.world.width + OFFScreen
-		}
-
-		// Detects when moving box moves pass detection line
-		if (this.testBox.x < 100 && this.testBox.x > 0) {
-			this.hitBox.drawRect(0, this.testBox.y + 5 - HITSize, 
-								 HITSize,
-								 this.testBox.height + 5 + HITSize )	
-			this.hitBox.endFill()
-		}
-		
+		this.metroCircle.clear()		
 		// Display time
 		//this.debug.text('Time now: ' + this.time.totalElapsedSeconds(), 32, 32)
 
@@ -221,6 +212,55 @@ export default class extends Phaser.State {
 					this.gfx.endFill()
 				}
 			}
+			this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds()}`
+
+			var beatCounter = (this.time.totalElapsedSeconds() * 16)
+			if (beatCounter % 1 == 0 ) {
+				this.beats++
+				this.metroCircle.beginFill(0x0ff000)
+				this.metroCircle.lineStyle(1, 0x000ff0, 1)
+				this.metroCircle.drawCircle(50, 50, 30)
+			}
+			else {
+				this.metroCircle.beginFill(0x0ff000)
+				this.metroCircle.lineStyle(1, 0x000ff0, 1)
+				this.metroCircle.drawCircle(50, 50, 20)
+			}
+
+			this.beatText.text = `Beat: ${this.beats} `
+
+			this.hitBox.beginFill(0xffe500)
+			this.hitBox.lineStyle(10, 0xfffb42, 1)
+
+			this.playBox.x = -7
+
+			this.testBox.x -= 11
+
+			// Determines position of incoming boxes and draws them
+			// Replace with time events when possible
+			var spawnPos = 27//arrayConvert(notes, beatSize, beatCounter)
+			
+
+			if (spawnPos != 0) {
+				var noteGroup = this.notesdata[spawnPos] 
+				this.playBox.drawRect(10,10,10,10)//0, noteGroup.pos, BOX_SIZE, noteGroup.pos + BOX_SIZE)
+			}
+
+			// Resets moving box to right of screen (TESTING PURPOSES)
+			if (this.testBox.x < -OFFScreen) {
+				this.testBox.x = this.world.width + OFFScreen
+			}
+
+			// Detects when moving box moves pass detection line
+			if (this.testBox.x < 100 && this.testBox.x > 0) {
+				this.hitBox.drawRect(0, this.testBox.y + 5 - HITSize, 
+									 HITSize,
+									 this.testBox.height + 5 + HITSize )
+	
+				this.hitBox.endFill()
+			}
+
+
 		}
 	}
 }
