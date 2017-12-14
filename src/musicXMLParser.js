@@ -13,8 +13,8 @@ const NOTEVALUES = {
 
 export const octaveNoteToValue = (octave: number, note: number): number => {
   // Note 3 is octave 4, note 4 is suddenly octave 5?
-  const uniqueOctave = octave - Math.floor((note + 8) / 12)
-  return note + uniqueOctave * 12
+  const uniqueOctave = octave - Math.floor((note + 9) / 12)
+  return note + uniqueOctave * 12 
 }
 
 interface ITimeSignature {
