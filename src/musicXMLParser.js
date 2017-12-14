@@ -1,3 +1,4 @@
+// @flow
 // xmlDoc: https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
 // xmlDoc -> array of 1/12th beat notes
 const NOTEVALUES = {
@@ -10,14 +11,27 @@ const NOTEVALUES = {
   'G': 10
 }
 
-export const octaveNoteToValue = (octave, note) => {
+export const octaveNoteToValue = (octave: number, note: number): number => {
   // Note 3 is octave 4, note 4 is suddenly octave 5?
   const uniqueOctave = octave - Math.floor((note + 8) / 12)
   return note + uniqueOctave * 12
 }
 
-export const parseMusicXML = (xmlDoc) => {
-  // Maybe store notes as played this note for this duration, allows for repeated notes
+interface ITimeSignature {
+  beats: number,
+  beatType: number
+}
+
+interface IMusicXML {
+  musicData: Array<number>,
+  timeSignature: ITimeSignature
+}
+
+interface INoteData {
+  pitchValue: 
+}
+
+export const parseMusicXML = (xmlDoc: XMLDocument): IMusicXML => {
   // TODO: Detection of repeats, codas, etc
   // TODO: Recognise song name, composer name etc
   const baseNode = xmlDoc.getElementsByTagName('part')[0]
@@ -27,20 +41,33 @@ export const parseMusicXML = (xmlDoc) => {
   }
 }
 
-const getMusicData = (baseNode) => {
+const getMusicData2 = (baseNode): Array<number> => {
+  // returns array of data, every 1/12 beats
   const divisions = getElementNum(baseNode, 'divisions')
   let musicData = []
   for (let node of baseNode.getElementsByTagName('note')) {
     const duration = getElementNum(node, 'duration') / divisions * 12
-    const pitch = getPitch(node)
+    const pitchValue = getPitchValue(node)
     for (let i = 0; i < duration; i++) {
-      musicData.push(pitch)
+      musicData.push(pitchValue)
     }
   }
   return musicData
 }
 
-const getPitch = (node) => {
+const getMusicData = (baseNode): Array<> => {
+  // returns data of every note, shows number of 1/12 beats
+  const divisions = getElementNum(baseNode, 'divisions')
+  let musicData = []
+  for (let node of baseNode.getElementsByTagName('note')) {
+    const duration = getElementNum(node, 'duration') / divisions * 12
+    const pitchValue = getPitchValue(node)
+    musicData.push({ pitchValue, duration })
+  }
+  return musicData
+}
+
+const getPitchValue = (node) => {
   if (hasElement(node, 'rest')) {
     return 0
   }
