@@ -1,29 +1,30 @@
 $(
   function () {
-    $('#tuner-wave').css('box-sizing', 'border-box')
-    $('#tuner-la').spinner({ min: 220, max: 880 })
-    var p = true
-    $('#tuner-wave').click(function () { p = !p })
-    var l = document.getElementById('tuner-wave')
-    var a = l.getContext('2d')
-    var o = document.getElementById('tuner-cents')
-    var f = o.getContext('2d')
+    //$('#tuner-wave').css('box-sizing', 'border-box')
+    //$('#tuner-la').spinner({ min: 220, max: 880 })
+    //var p = true
+    //$('#tuner-wave').click(function () { p = !p })
+    //var l = document.getElementById('tuner-wave')
+    //var a = l.getContext('2d')
+    //var o = document.getElementById('tuner-cents')
+    //var f = o.getContext('2d')
     var r
     var n
     var i = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
+    /*
     function q (y) {
       var t = o.width, x = o.height;
       f.clearRect(0, 0, t, x)
       if (y > 0) {
-        $('#tuner-freq').text(y.toFixed(1) + ' Hz')
+        //$('#tuner-freq').text(y.toFixed(1) + ' Hz')
         var u = Math.log(y / $('#tuner-la').val()) / Math.LN2 * 12
         var s = u - Math.floor(u)
         if (s >= 0.5) { s -= 1 }
         var z = 12 * 4 + 9 + Math.round(u)
         var v = ~~(z / 12)
         if (z < 0) { --v } z -= 12 * v
-        $('#tuner-notename').html(i[z])
-        $('#tuner-octave').text(v)
+        //$('#tuner-notename').html(i[z])
+        //$('#tuner-octave').text(v)
         f.lineWidth = 3
         f.strokeStyle = '#c10'
         f.beginPath()
@@ -36,12 +37,17 @@ $(
         $('#tuner-octave').empty()
         $('#tuner-freq').empty()
       }
-    }
+    } 
+      
     function m (e) {
       $('#tuner-loudness div').css('width', (e * 100) + '%')
-    } function h (e) {
+    }
+      
+    function h (e) {
       $('#tuner-clarity div').css('width', (e * 100) + '%')
     }
+    */
+    
     var c = function (x) {
       var w = new Array(x / 2)
       var s = new Array(x / 2)
@@ -49,6 +55,7 @@ $(
         w[e] = Math.cos(2 * Math.PI * e / x)
         s[e] = Math.sin(2 * Math.PI * e / x)
       }
+        
       function v (y, z) {
         y = (y & 2863311530) >>> 1 | (y & 1431655765) << 1
         y = (y & 3435973836) >>> 2 | (y & 858993459) << 2
@@ -56,11 +63,14 @@ $(
         y = (y & 4278255360) >>> 8 | (y & 16711935) << 8
         return (y >>> 16 | y << 16) >>> (32 - z)
       }
+        
       var u = Math.round(Math.log(x) / Math.LN2)
+      
       var t = new Array(x)
       for (var e = 0; e < x; e++) {
         t[e] = v(e, u)
       }
+        
       this.transform = function (E, z) {
         var C, B, G, A, D, y, F
         for (C = 0; C < x; C++) {
@@ -88,11 +98,13 @@ $(
         }
       }
     }
+    
     function d (u, s, e, v) {
       var t = e + e - v - s
       if (!t) { return u }
       return u + (v - s) / (2 * t)
     }
+      
     function b () {
       var t = r.fftSize
       var z = 2 * t
@@ -102,6 +114,7 @@ $(
       var w = new c(z)
       var y = Date.now()
       var u = 67
+      
       function s () {
         var F
         requestAnimationFrame(s)
@@ -180,14 +193,17 @@ $(
           a.stroke()
         }
       }
+        
       s()
     }
+      
     try {
       var g = new AudioContext()
     } catch (j) {
       $('#tuner-error').html('<strong>ERROR:</strong> Your browser does not support the Web Audio standard. Please update your browser or install a more modern browser such as <a href="http://www.google.com/chrome/">Google Chrome</a>.')
       return
     }
+      
     navigator.getUserMedia = (navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia)
     if (navigator.getUserMedia) {
       navigator.getUserMedia({ audio: true },
@@ -206,4 +222,5 @@ $(
     } else {
       $('#tuner-error').html('<strong>ERROR:</strong> Your browser does not support microphone input. Please update your browser or install a more modern browser such as <a href="http://www.google.com/chrome/">Google Chrome</a>')
     }
-  })
+  }
+)
