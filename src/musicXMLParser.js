@@ -13,8 +13,8 @@ const NOTEVALUES = {
 
 export const octaveNoteToValue = (octave: number, note: number): number => {
   // Note 3 is octave 4, note 4 is suddenly octave 5?
-  const uniqueOctave = octave - Math.floor((note + 8) / 12)
-  return note + uniqueOctave * 12
+  const uniqueOctave = octave - Math.floor((note + 9) / 12)
+  return note + uniqueOctave * 12 
 }
 
 interface ITimeSignature {
@@ -28,7 +28,8 @@ interface IMusicXML {
 }
 
 interface INoteData {
-  pitchValue: 
+  pitchValue: number,
+  duration: number
 }
 
 export const parseMusicXML = (xmlDoc: XMLDocument): IMusicXML => {
@@ -55,7 +56,7 @@ const getMusicData2 = (baseNode): Array<number> => {
   return musicData
 }
 
-const getMusicData = (baseNode): Array<> => {
+const getMusicData = (baseNode): INoteData => {
   // returns data of every note, shows number of 1/12 beats
   const divisions = getElementNum(baseNode, 'divisions')
   let musicData = []
