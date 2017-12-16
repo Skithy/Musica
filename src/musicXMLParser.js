@@ -22,13 +22,14 @@ interface ITimeSignature {
   beatType: number
 }
 
-interface IMusicXML {
-  musicData: Array<number>,
-  timeSignature: ITimeSignature
+interface INoteData {
+  pitchValue: number,
+  duration: number
 }
 
-interface INoteData {
-  pitchValue: 
+interface IMusicXML {
+  musicData: Array<INoteData>,
+  timeSignature: ITimeSignature
 }
 
 export const parseMusicXML = (xmlDoc: XMLDocument): IMusicXML => {
@@ -41,21 +42,7 @@ export const parseMusicXML = (xmlDoc: XMLDocument): IMusicXML => {
   }
 }
 
-const getMusicData2 = (baseNode): Array<number> => {
-  // returns array of data, every 1/12 beats
-  const divisions = getElementNum(baseNode, 'divisions')
-  let musicData = []
-  for (let node of baseNode.getElementsByTagName('note')) {
-    const duration = getElementNum(node, 'duration') / divisions * 12
-    const pitchValue = getPitchValue(node)
-    for (let i = 0; i < duration; i++) {
-      musicData.push(pitchValue)
-    }
-  }
-  return musicData
-}
-
-const getMusicData = (baseNode): Array<> => {
+const getMusicData = (baseNode): Array<INoteData> => {
   // returns data of every note, shows number of 1/12 beats
   const divisions = getElementNum(baseNode, 'divisions')
   let musicData = []
@@ -67,7 +54,7 @@ const getMusicData = (baseNode): Array<> => {
   return musicData
 }
 
-const getPitchValue = (node) => {
+const getPitchValue = (node): number => {
   if (hasElement(node, 'rest')) {
     return 0
   }
@@ -81,7 +68,7 @@ const getPitchValue = (node) => {
   return pitch
 }
 
-const getTimeSignature = (baseNode) => {
+const getTimeSignature = (baseNode): ITimeSignature => {
   const timeSignatureNode = baseNode.getElementsByTagName('time')[0]
   return {
     beats: getElementNum(timeSignatureNode, 'beats'),
@@ -89,6 +76,6 @@ const getTimeSignature = (baseNode) => {
   }
 }
 
-const getElementText = (node, element) => node.getElementsByTagName(element)[0].textContent
-const getElementNum = (node, element) => parseInt(getElementText(node, element))
-const hasElement = (node, element) => node.getElementsByTagName(element).length === 1
+const getElementText = (node, element: string): string => node.getElementsByTagName(element)[0].textContent
+const getElementNum = (node, element: string): number => parseInt(getElementText(node, element))
+const hasElement = (node, element: string): boolean => node.getElementsByTagName(element).length === 1

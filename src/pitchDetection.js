@@ -1,6 +1,13 @@
+// @flow
 const GOOD_ENOUGH_CORRELATION = 0.9
 
-export const autoCorrelateAudioData = (buffer, sampleRate) => {
+interface IFrequencyData {
+  octave: number,
+  note: number,
+  frequency: number
+}
+
+export const autoCorrelateAudioData = (buffer, sampleRate: number): number => {
   const MAX_SAMPLES = Math.floor(buffer.length / 2)
   let bestOffset = -1
   let bestCorrelation = 0
@@ -8,10 +15,11 @@ export const autoCorrelateAudioData = (buffer, sampleRate) => {
   let correlations = new Array(MAX_SAMPLES)
 
   // Get RMS of buffer
-  let rms = buffer.reduce((total, num) => total + Math.pow(num))
+  let rms = buffer.reduce((total, num) => total + Math.pow(num, 2))
   rms = Math.sqrt(rms / buffer.length)
-  if (rms < 0.01)
+  if (rms < 0.01) {
     return -1
+  }
 
   let lastCorrelation = 1
   for (let offset = 0; offset < MAX_SAMPLES; offset++) {
@@ -51,7 +59,7 @@ export const autoCorrelateAudioData = (buffer, sampleRate) => {
   return -1
 }
 
-export const frequencyData = (frequency) => {
+export const frequencyData = (frequency: number): IFrequencyData => {
   let octave, note
   if (frequency === -1) {
     octave = -1
@@ -76,6 +84,7 @@ export const frequencyData = (frequency) => {
 
   return {
     octave,
-    note
+    note,
+    frequency
   }
 }
