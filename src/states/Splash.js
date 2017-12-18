@@ -9,7 +9,7 @@ export default class extends Phaser.State {
   preload () {
     this.downloadFile()
 
-    this.banner = this.add.text(this.world.centerX, this.world.centerY, 'Loading...')
+    this.banner = this.add.text(this.world.centerX, this.world.centerY, 'Loading...', { font: '16px Arial', fill: '#dddddd', align: 'center' })
     this.banner.font = 'Bangers'
     this.banner.padding.set(10, 16)
     this.banner.fontSize = 40

@@ -65,7 +65,7 @@ export default class extends Phaser.State {
     this.getMusicData()
     this.requestUserMedia()
 
-    this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...')
+    this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...', { font: '16px Arial', fill: '#dddddd', align: 'center' })
     this.banner.font = 'Bangers'
     this.banner.padding.set(10, 16)
     this.banner.fontSize = 40
