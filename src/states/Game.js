@@ -10,15 +10,19 @@ const MIC_STATUS = {
 }
 const BOX_SIZE = 20
 const BPS = 12
-// Test data
-var notes = [36, 48, 0, 50]
-var beatSize = 4
+const BOX_SPEED = 4 // <-- ceebs for now
+
+const START_POS = 100 // Start position of music score
 
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
   init () {
     this.getMusicData = this.getMusicData.bind(this)
     this.requestUserMedia = this.requestUserMedia.bind(this)
+    this.createBanner = this.createBanner.bind(this)
+    this.createMusicSheet = this.createMusicSheet.bind(this)
+    this.createIncomingMusic = this.createIncomingMusic.bind(this)
+    this.animateNotes = this.animateNotes.bind(this)
   }
 
   preload () {
@@ -64,6 +68,8 @@ export default class extends Phaser.State {
       61: { colour: 0x00FFFF, pos: 55, note: 'A#' },
       62: { colour: 0x88FFFF, pos: 40, note: 'B' }
     }
+
+    this.beats = 0
   }
 
   createBanner () {
@@ -80,7 +86,6 @@ export default class extends Phaser.State {
     const createBarLines = (gfx) => {
       gfx.beginFill(0xFF0000)
       gfx.lineStyle(2, 0x000000, 1)
-
       for (let i = 0; i < 5; i++) {
         gfx.moveTo(0, START_POS + i * 30)
         gfx.lineTo(this.world.width, START_POS + i * 30)
@@ -200,6 +205,7 @@ export default class extends Phaser.State {
   }
 
   render () {
+    // Removes previous draw and redraws when needed
     this.gfx.clear()
 
     this.animateNotes()
