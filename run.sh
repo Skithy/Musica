@@ -26,4 +26,7 @@ fi
 if [ "$1" = "eslint" ]
 then 
 	echo "ESLint-ing"
-
+	npm run eslint
+	echo "Flow-ing"
+	npm run flow
+fi
