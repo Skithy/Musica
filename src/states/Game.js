@@ -52,6 +52,7 @@ export default class extends Phaser.State {
     this.bpm = 60
     this.boxSpeed = calculateScrollSpeed(this.bpm, BOX_SIZE)
     this.beats = 0
+    this.openedMenu = 0
 
     this.loadGameSettings()
     this.loadAudioContext()
@@ -115,6 +116,10 @@ export default class extends Phaser.State {
       this.sendingAudioData = MIC_STATUS.DENIED
     }
   }
+  openMenu = () => {
+    this.menu.drawRect(10, 10, this.world.width - 20, this.world.height - 20)
+    this.openedMenu = 1
+  }
 
   create () {
     this.createBanner()
@@ -157,7 +162,6 @@ export default class extends Phaser.State {
     const createStartLine = (gfx) => {
       gfx.beginFill(0xFF0000)
       gfx.lineStyle(2, 0x000000, 1)
-
       drawLine(gfx, 100, 100, 100, 220)
     }
 
@@ -166,6 +170,10 @@ export default class extends Phaser.State {
 
     this.gfx = this.add.graphics(0, 0)
 
+    this.menu = this.add.graphics(0, 0)
+    this.menu.beginFill(0xFF0000)
+    this.menu.lineStyle(2, 0x000000, 1)
+  
     this.startLineGfx = this.add.graphics(0, 0)
     createStartLine(this.startLineGfx)
   }
@@ -222,6 +230,41 @@ export default class extends Phaser.State {
     this.noteLabels = this.add.group()
     createIncomingBarLines(this.playBox)
     createIncomingNotes(this.playBox, this.noteLabels)
+  }
+
+  create2 () {
+    this.game.time.advancedTiming = true
+
+    this.getMusicData()
+    this.requestUserMedia()
+
+    this.createBanner()
+    this.createMusicSheet()
+
+    this.createIncomingMusic()
+    
+    // Metronome circle showing beats
+    this.metronome = this.add.graphics(0, 0)
+    this.metronome.beginFill(0x000000)
+    this.metronome.lineStyle(1, 0x000000, 1)
+
+    // Menu button
+    this.menuButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)//drawRect(this.world.width - 200, 10, 20, 20)
+
+    
+    this.timerText = this.add.text(0, 0, ' ', { font: '10px Arial' })
+    this.timerText.padding.set(10, 16)
+    this.timerText.smoothed = false
+    const fontStyle = {
+      font: '40px Bangers',
+      fill: '#77BFA3',
+      align: 'center'
+    }
+    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
+    this.beatText.padding.set(10, 16)
+    this.beatText.smoothed = false
+    this.beatText.anchor.setTo(0.5)
+  }
 
     this.incomingNotes = this.add.group()
     this.incomingNotes.add(this.playBox)
