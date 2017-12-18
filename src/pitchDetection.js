@@ -1,4 +1,5 @@
 // @flow
+/* Constants and interfaces */
 const GOOD_ENOUGH_CORRELATION = 0.9
 
 interface IFrequencyData {
@@ -7,7 +8,8 @@ interface IFrequencyData {
   frequency: number
 }
 
-export const autoCorrelateAudioData = (buffer, sampleRate: number): number => {
+/* Functions */
+export const autoCorrelateAudioData = (buffer: Array, sampleRate: number): number => {
   const MAX_SAMPLES = Math.floor(buffer.length / 2)
   let bestOffset = -1
   let bestCorrelation = 0
