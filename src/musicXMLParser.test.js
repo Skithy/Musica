@@ -6,7 +6,7 @@ describe('octaveNoteToValue', () => {
     expect(octaveNoteToValue(4, 0)).toBe(48)
     expect(octaveNoteToValue(4, 1)).toBe(49)
     expect(octaveNoteToValue(4, 2)).toBe(50)
-    expect(octaveNoteToValue(4, 3)).toBe(51)
+    expect(octaveNoteToValue(5, 3)).toBe(51)
     expect(octaveNoteToValue(5, 4)).toBe(52)
     expect(octaveNoteToValue(5, 5)).toBe(53)
     expect(octaveNoteToValue(4, -1)).toBe(47)
@@ -19,10 +19,10 @@ describe('parseMusicXML', () => {
     const xml = (new DOMParser()).parseFromString(testXML, 'text/xml')
     const { musicData, timeSignature } = parseMusicXML(xml)
     const expectedMusicData = [
-      0, 0, 0, 0, 0, 0,
-      48, 48, 48, 48, 48, 48,
-      47, 47, 47, 47, 47, 47,
-      54, 54, 54, 54, 54, 54
+      { pitchValue: 0, duration: 6 },
+      { pitchValue: 48, duration: 6 },
+      { pitchValue: 47, duration: 6 },
+      { pitchValue: 54, duration: 6 }
     ]
     const expectedTimeSignature = {
       beats: 2,

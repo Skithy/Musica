@@ -1,4 +1,5 @@
 // @flow
+/* Constants and interfaces */
 const GOOD_ENOUGH_CORRELATION = 0.9
 
 interface IFrequencyData {
@@ -7,7 +8,8 @@ interface IFrequencyData {
   frequency: number
 }
 
-export const autoCorrelateAudioData = (buffer, sampleRate: number): number => {
+/* Functions */
+export const autoCorrelateAudioData = (buffer: Array, sampleRate: number): number => {
   const MAX_SAMPLES = Math.floor(buffer.length / 2)
   let bestOffset = -1
   let bestCorrelation = 0
@@ -69,7 +71,7 @@ export const frequencyData = (frequency: number): IFrequencyData => {
     let dominantFrequency = Math.log2(frequency / 440)
 
     // Figure out how many semitones that equates to.
-    let semitonesFromA4 = 12 * dominantFrequency
+    let semitonesFromA4 = Math.round(12 * dominantFrequency)
 
     // The octave is A440 for 4, so start there, then adjust by the
     // number of semitones. Since we're at A, we need only 3 more to
@@ -79,7 +81,7 @@ export const frequencyData = (frequency: number): IFrequencyData => {
     octave = Math.floor(octave)
 
     // The note is 0 for A, all the way to 11 for G#.
-    note = (12 + (Math.round(semitonesFromA4) % 12)) % 12
+    note = (12 + (semitonesFromA4 % 12)) % 12
   }
 
   return {

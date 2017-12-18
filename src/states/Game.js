@@ -289,7 +289,7 @@ export default class extends Phaser.State {
         this.banner.text = `Frequency: ${frequency}  -  Octave: ${octave}  -  Note: ${note}`
 
         // Draw rect
-        const num = octaveNoteToValue(octave, note)
+        const num = octaveNoteToValue(octave, note) + 9 // Saxaphones are transposed instruments
         if (this.notesdata[num]) {
           const data = this.notesdata[num]
           this.gfx.beginFill(data.colour, 0.65)
