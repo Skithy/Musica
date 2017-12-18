@@ -1,6 +1,5 @@
 // @flow
-// xmlDoc: https://developer.mozilla.org/en-US/docs/Web/API/DOMParser
-// xmlDoc -> array of 1/12th beat notes
+/* Constants and interfaces */
 const NOTEVALUES = {
   'A': 0,
   'B': 2,
@@ -14,7 +13,7 @@ const NOTEVALUES = {
 export const octaveNoteToValue = (octave: number, note: number): number => {
   // Note 3 is octave 4, note 4 is suddenly octave 5?
   const uniqueOctave = octave - Math.floor((note + 9) / 12)
-  return note + uniqueOctave * 12 
+  return note + uniqueOctave * 12
 }
 
 interface ITimeSignature {
@@ -32,6 +31,7 @@ interface IMusicXML {
   timeSignature: ITimeSignature
 }
 
+/* Functions */
 export const parseMusicXML = (xmlDoc: XMLDocument): IMusicXML => {
   // TODO: Detection of repeats, codas, etc
   // TODO: Recognise song name, composer name etc
@@ -78,4 +78,4 @@ const getTimeSignature = (baseNode): ITimeSignature => {
 
 const getElementText = (node, element: string): string => node.getElementsByTagName(element)[0].textContent
 const getElementNum = (node, element: string): number => parseInt(getElementText(node, element))
-const hasElement = (node, element: string): boolean => node.getElementsByTagName(element).length === 1
+const hasElement = (node, element: string): boolean => node.getElementsByTagName(element).length > 0

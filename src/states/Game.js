@@ -9,24 +9,47 @@ const MIC_STATUS = {
   DENIED: 2
 }
 const BOX_SIZE = 20
-const BPS = 12
-const BOX_SPEED = 4 // <-- ceebs for now
+const BOX_SPEED = 2 // <-- ceebs for now
 
 const START_POS = 100 // Start position of music score
+
+const drawLine = (gfx, x1, y1, x2, y2) => {
+  gfx.moveTo(x1, y1)
+  gfx.lineTo(x2, y2)
+}
+
+const drawDottedLine = (gfx, x1, y1, x2, y2, lineLength, spaceLength) => {
+  const angle = Math.atan((y2 - y1) / (x2 - x1))
+  const dx = (lineLength + spaceLength) * Math.cos(angle)
+  const dy = (lineLength + spaceLength) * Math.sin(angle)
+
+  const checkx = (x, x2) => (x1 > x2) ? x > x2 : x < x2
+  const checky = (y, y2) => (y1 > y2) ? y > y2 : y < y2
+
+  let x, y
+  for (x = x1, y = y1; checkx(x, x2) || checky(y, y2); x += dx, y += dy) {
+    drawLine(gfx, x, y, x + lineLength * Math.cos(angle), y + lineLength * Math.sin(angle))
+  }
+  drawLine(gfx, x, y, x2, y2)
+}
 
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
   init () {
+    this.loadAudioContext = this.loadAudioContext.bind(this)
+    this.loadNotesData = this.loadNotesData.bind(this)
+
     this.getMusicData = this.getMusicData.bind(this)
     this.requestUserMedia = this.requestUserMedia.bind(this)
     this.createBanner = this.createBanner.bind(this)
     this.createMusicSheet = this.createMusicSheet.bind(this)
     this.createIncomingMusic = this.createIncomingMusic.bind(this)
     this.animateNotes = this.animateNotes.bind(this)
+
+    this.bpm = 120
   }
 
-  preload () {
-    // Setup AudioContext and Analysers
+  loadAudioContext () {
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)()
 
     this.analyser = this.audioCtx.createAnalyser()
@@ -40,7 +63,9 @@ export default class extends Phaser.State {
     this.stream = null
     this.microphone = null
     this.frequencyBuffer = new Float32Array(FFTSize)
+  }
 
+  loadNotesData () {
     this.notesdata = {
       38: { colour: 0x880000, pos: 250, note: 'B' },
       39: { colour: 0xFF0000, pos: 235, note: 'C' }, // Middle C
@@ -68,16 +93,22 @@ export default class extends Phaser.State {
       61: { colour: 0x00FFFF, pos: 55, note: 'A#' },
       62: { colour: 0x88FFFF, pos: 40, note: 'B' }
     }
+  }
 
+  preload () {
+    this.loadAudioContext()
+    this.loadNotesData()
     this.beats = 0
   }
 
   createBanner () {
-    this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...', { font: '16px Arial', fill: '#dddddd', align: 'center' })
-    this.banner.font = 'Bangers'
+    const fontStyle = {
+      font: '40px Bangers',
+      fill: '#77BFA3',
+      align: 'center'
+    }
+    this.banner = this.add.text(this.world.centerX, this.game.height - 80, 'Loading...', fontStyle)
     this.banner.padding.set(10, 16)
-    this.banner.fontSize = 40
-    this.banner.fill = '#77BFA3'
     this.banner.smoothed = false
     this.banner.anchor.setTo(0.5)
   }
@@ -87,18 +118,15 @@ export default class extends Phaser.State {
       gfx.beginFill(0xFF0000)
       gfx.lineStyle(2, 0x000000, 1)
       for (let i = 0; i < 5; i++) {
-        gfx.moveTo(0, START_POS + i * 30)
-        gfx.lineTo(this.world.width, START_POS + i * 30)
+        drawLine(gfx, 0, START_POS + i * 30, this.world.width, START_POS + i * 30)
       }
     }
 
     const createStartLine = (gfx) => {
-      gfx = this.add.graphics(0, 0)
       gfx.beginFill(0xFF0000)
       gfx.lineStyle(2, 0x000000, 1)
 
-      gfx.moveTo(100, 100)
-      gfx.lineTo(100, 220)
+      drawLine(gfx, 100, 100, 100, 220)
     }
 
     this.barLinesGfx = this.add.graphics(0, 0)
@@ -112,42 +140,61 @@ export default class extends Phaser.State {
 
   createIncomingMusic () {
     const createIncomingBarLines = (gfx) => {
+      gfx.lineStyle(2, 0x000234, 1)
+      gfx.beginFill(0x00f754)
       const totalBeats = this.musicData.reduce((total, note) => total + note.duration, 0)
-      for (let i = 0; i < totalBeats; i += this.timeSignature.beats * 12) {
-        gfx.moveTo(i * BOX_SIZE, 100)
-        gfx.lineTo(i * BOX_SIZE, 220)
+      for (let i = 0; i < totalBeats; i += 12) {
+        if (i % (this.timeSignature.beats * 12) === 0) {
+          drawLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220)
+        } else {
+          drawDottedLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220, 4, 4)
+        }
       }
     }
 
-    const createIncomingNotes = (gfx) => {
+    const createIncomingNotes = (gfx, noteLabels) => {
       gfx.lineStyle(2, 0x000234, 1)
       gfx.beginFill(0x00f754)
-
-      this.noteLabels = []
+      const fontStyle = {
+        font: '14px Arial',
+        fill: '#000000',
+        align: 'center'
+      }
 
       let currentBeat = 0
       for (let note of this.musicData) {
         const {pitchValue, duration} = note
-        if (pitchValue != 0 && this.notesdata[pitchValue]) {
+        if (pitchValue !== 0 && this.notesdata[pitchValue]) {
           const height = this.notesdata[pitchValue].pos
-          gfx.drawRect(currentBeat * BOX_SIZE, height + 2, duration * BOX_SIZE - 2, 26)
+          const rect = {
+            x: currentBeat * BOX_SIZE,
+            y: height,
+            width: duration * BOX_SIZE,
+            height: 30
+          }
+          gfx.drawRect(rect.x, rect.y, rect.width, rect.height)
 
-          const labelX = START_POS + currentBeat * BOX_SIZE + (duration * BOX_SIZE) / 2
-          const labelY = height
-          const labelText = this.notesdata[pitchValue].note
-          this.noteLabels.push(this.add.text(labelX, labelY, labelText))
+          const label = {
+            x: START_POS + currentBeat * BOX_SIZE + 2,
+            y: height + 2,
+            text: this.notesdata[pitchValue].note,
+            style: fontStyle
+          }
+          noteLabels.push(this.add.text(label.x, label.y, label.text, label.style))
         }
         currentBeat += note.duration
       }
     }
 
     this.playBox = this.add.graphics(100, 0)
-
+    this.noteLabels = []
     createIncomingBarLines(this.playBox)
-    createIncomingNotes(this.playBox)
+    createIncomingNotes(this.playBox, this.noteLabels)
   }
 
   create () {
+    this.game.time.advancedTiming = true
+
     this.getMusicData()
     this.requestUserMedia()
 
@@ -155,15 +202,24 @@ export default class extends Phaser.State {
     this.createMusicSheet()
 
     this.createIncomingMusic()
-
+    
     // Metronome circle showing beats
-    this.metronome = game.add.graphics(0, 0)
+    this.metronome = this.add.graphics(0, 0)
     this.metronome.beginFill(0x000000)
     this.metronome.lineStyle(1, 0x000000, 1)
 
-    this.timerText = this.add.text(0, 0, ' ')
-
-    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ')
+    this.timerText = this.add.text(0, 0, ' ', { font: '10px Arial' })
+    this.timerText.padding.set(10, 16)
+    this.timerText.smoothed = false
+    const fontStyle = {
+      font: '40px Bangers',
+      fill: '#77BFA3',
+      align: 'center'
+    }
+    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
+    this.beatText.padding.set(10, 16)
+    this.beatText.smoothed = false
+    this.beatText.anchor.setTo(0.5)
   }
 
   getMusicData () {
@@ -199,9 +255,9 @@ export default class extends Phaser.State {
 
   animateNotes () {
     this.playBox.x -= BOX_SPEED
-    // for (let label in this.noteLabels) {
-    //  label.x -= BOX_SPEED
-    // }
+    for (let label of this.noteLabels) {
+      label.x -= BOX_SPEED
+    }
   }
 
   render () {
@@ -209,6 +265,11 @@ export default class extends Phaser.State {
     this.gfx.clear()
 
     this.animateNotes()
+
+    this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds().toFixed(2)} FPS: ${this.time.fps}`
+    const beatCounter = Math.floor((this.bpm * this.time.totalElapsedSeconds() / 60).toFixed(2))
+    this.beats = beatCounter
+    this.beatText.text = `Beat: ${beatCounter}`
 
     if (this.sendingAudioData === MIC_STATUS.REQUESTED) {
       this.banner.text = 'Waiting for microphone...'
@@ -237,11 +298,6 @@ export default class extends Phaser.State {
           this.gfx.endFill()
         }
       }
-
-      this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds()}`
-      const beatCounter = Math.floor(this.time.totalElapsedSeconds() * BPS)
-      this.beats = beatCounter
-      this.beatText.text = `Beat: ${beatCounter} `
     }
   }
 }
