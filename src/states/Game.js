@@ -4,10 +4,16 @@ import { parseMusicXML, octaveNoteToValue } from '../musicXMLParser'
 
 const FFTSize = 2048
 const MIC_STATUS = {
-  REQUESTED: 0,
-  ALLOWED: 1,
-  DENIED: 2
+	REQUESTED: 0,
+	ALLOWED: 1,
+	DENIED: 2
 }
+const OFFScreen = 40
+const HITSize = 4
+const HITZone = 100
+
+// Test data
+var notes = [36, 37, 36, 37]
 
 export default class extends Phaser.State {
   // init -> preload -> create -> render loop
