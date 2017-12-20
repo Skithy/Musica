@@ -47,6 +47,7 @@ export default class extends Phaser.State {
     this.animateNotes = this.animateNotes.bind(this)
 
     this.openMenu = this.openMenu.bind(this)
+    this.closeMenu = this.closeMenu.bind(this)
 
     this.bpm = 120
     this.openedMenu = 0
@@ -97,9 +98,33 @@ export default class extends Phaser.State {
       62: { colour: 0x88FFFF, pos: 40, note: 'B' }
     }
   }
+
   openMenu () {
-    this.menu.drawRect(10, 10, this.world.width - 20, this.world.height - 20)
     this.openedMenu = 1
+
+    this.menu = this.add.graphics(0, 0)
+    this.menu.beginFill(0xFF0000)
+    this.menu.lineStyle(2, 0x000000, 1)  
+    this.menu.drawRect(10, 10, this.world.width - 20, this.world.height - 20)
+
+    this.menuConfigButton = this.add.button(this.world.centerX, 50, 'configImage', '', this, 2, 5, 0)
+    this.menuOptionButton = this.add.button(this.world.centerX, 90, 'dottedOptionImage', '', this, 2, 5, 0)    
+    this.menuDisplayButton = this.add.button(this.world.centerX, 130, 'displayImage', '', this, 2, 5, 0) 
+
+    this.gfx.visible = false
+    
+    this.pauseButton.destroy()
+    this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.closeMenu, this, 2, 5, 0)    
+  }
+
+  closeMenu () {
+    this.menuConfigButton.destroy()
+    this.menuOptionButton.destroy()
+    this.menuDisplayButton.destroy()
+    this.pauseButton.destroy()
+    this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
+    this.menu.clear()
+    this.openedMenu = 0
   }
 
   preload () {
@@ -139,10 +164,6 @@ export default class extends Phaser.State {
     createBarLines(this.barLinesGfx)
 
     this.gfx = this.add.graphics(0, 0)
-
-    this.menu = this.add.graphics(0, 0)
-    this.menu.beginFill(0xFF0000)
-    this.menu.lineStyle(2, 0x000000, 1)
   
     this.startLineGfx = this.add.graphics(0, 0)
     createStartLine(this.startLineGfx)
@@ -154,6 +175,13 @@ export default class extends Phaser.State {
       gfx.beginFill(0x00f754)
       const totalBeats = this.musicData.reduce((total, note) => total + note.duration, 0)
       for (let i = 0; i < totalBeats; i += 12) {
+        /*
+        if (this.openedMenu == 1 ) {
+          this.gfx.lineStyle(2, 0xFF0000, 1)
+          i--
+          continue
+        }
+        */
         if (i % (this.timeSignature.beats * 12) === 0) {
           drawLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220)
         } else {
@@ -219,8 +247,7 @@ export default class extends Phaser.State {
     this.metronome.lineStyle(1, 0x000000, 1)
 
     // Menu button
-    this.menuButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)//drawRect(this.world.width - 200, 10, 20, 20)
-
+    this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
     
     this.timerText = this.add.text(0, 0, ' ', { font: '10px Arial' })
     this.timerText.padding.set(10, 16)
@@ -278,7 +305,9 @@ export default class extends Phaser.State {
     // Removes previous draw and redraws when needed
     this.gfx.clear()
 
-    this.animateNotes()
+    if (this.openedMenu != 1) {
+      this.animateNotes()
+    }
 
     this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds().toFixed(2)} FPS: ${this.time.fps}`
     const beatCounter = Math.floor((this.bpm * this.time.totalElapsedSeconds() / 60).toFixed(2))
