@@ -102,6 +102,8 @@ export default class extends Phaser.State {
   openMenu () {
     this.openedMenu = 1
 
+    this.timer.pause()
+
     this.menu = this.add.graphics(0, 0)
     this.menu.beginFill(0xFF0000)
     this.menu.lineStyle(2, 0x000000, 1)  
@@ -118,6 +120,8 @@ export default class extends Phaser.State {
   }
 
   closeMenu () {
+    this.timer.resume()
+
     this.menuConfigButton.destroy()
     this.menuOptionButton.destroy()
     this.menuDisplayButton.destroy()
@@ -257,6 +261,9 @@ export default class extends Phaser.State {
       fill: '#77BFA3',
       align: 'center'
     }
+    this.timer = this.time.create(false)
+    this.timer.start()
+    
     this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
     this.beatText.padding.set(10, 16)
     this.beatText.smoothed = false
@@ -309,8 +316,8 @@ export default class extends Phaser.State {
       this.animateNotes()
     }
 
-    this.timerText.text = `Elapsed time: ${this.time.totalElapsedSeconds().toFixed(2)} FPS: ${this.time.fps}`
-    const beatCounter = Math.floor((this.bpm * this.time.totalElapsedSeconds() / 60).toFixed(2))
+    this.timerText.text = `Elapsed time: ${this.timer.seconds} FPS: ${this.time.fps}`
+    const beatCounter = Math.floor((this.bpm * this.timer.seconds / 60).toFixed(2))
     this.beats = beatCounter
     this.beatText.text = `Beat: ${beatCounter}`
 
