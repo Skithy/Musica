@@ -48,6 +48,8 @@ export default class extends Phaser.State {
 
     this.openMenu = this.openMenu.bind(this)
     this.closeMenu = this.closeMenu.bind(this)
+    this.printCountdown = this.printCountdown.bind(this)
+    this.resumePlay = this.resumePlay.bind(this)
 
     this.bpm = 120
     this.openedMenu = 0
@@ -120,14 +122,25 @@ export default class extends Phaser.State {
   }
 
   closeMenu () {
-    this.timer.resume()
-
     this.menuConfigButton.destroy()
     this.menuOptionButton.destroy()
     this.menuDisplayButton.destroy()
     this.pauseButton.destroy()
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
     this.menu.clear()
+
+    this.resumeCountdown = this.add.text(this.world.centerX, this.world.centerY, ' ', { font: '10px Arial' })
+    this.resumeTimer = this.time.create(false)
+    this.resumeTimer.start()
+    for (let i = 0; i < 3; i++) {
+      this.time.events.add(this.time.SECOND * this.time.totalElapsedSeconds() + this.time.SECOND / (this.bpm / 60) * i, this.printCountdown(3 - i), this)
+    } 
+    this.time.events.add(this.time.SECOND * this.time.totalElapsedSeconds() + this.time.SECOND / (this.bpm / 60) * 4, this.resumePlay(), this)
+  }
+
+  resumePlay () {
+    this.timer.resume()
+    //this.resumeCountdown.destroy()
     this.openedMenu = 0
   }
 
@@ -234,6 +247,10 @@ export default class extends Phaser.State {
     createIncomingNotes(this.playBox, this.noteLabels)
   }
 
+  printCountdown (no) {
+    this.resumeCountdown.text = `Ready in ${no}`
+  } 
+
   create () {
     this.game.time.advancedTiming = true
 
@@ -252,7 +269,7 @@ export default class extends Phaser.State {
 
     // Menu button
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
-    
+
     this.timerText = this.add.text(0, 0, ' ', { font: '10px Arial' })
     this.timerText.padding.set(10, 16)
     this.timerText.smoothed = false
@@ -268,6 +285,8 @@ export default class extends Phaser.State {
     this.beatText.padding.set(10, 16)
     this.beatText.smoothed = false
     this.beatText.anchor.setTo(0.5)
+
+  
   }
 
   getMusicData () {
