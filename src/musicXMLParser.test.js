@@ -19,10 +19,10 @@ describe('parseMusicXML', () => {
     const xml = (new DOMParser()).parseFromString(testXML, 'text/xml')
     const { musicData, timeSignature } = parseMusicXML(xml)
     const expectedMusicData = [
-      { pitchValue: 0, duration: 6 },
-      { pitchValue: 48, duration: 6 },
-      { pitchValue: 47, duration: 6 },
-      { pitchValue: 54, duration: 18 }
+      { pitchValue: 0, duration: 3 },
+      { pitchValue: 48, duration: 3 },
+      { pitchValue: 47, duration: 3 },
+      { pitchValue: 54, duration: 15 }
     ]
     const expectedTimeSignature = {
       beats: 4,
