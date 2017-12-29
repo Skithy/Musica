@@ -3,13 +3,12 @@ import firebase from '../firebase'
 
 export default class extends Phaser.State {
   init () {
-    this.downloadFile = this.downloadFile.bind(this)
-
     this.fileDownloaded = false
   }
 
   preload () {
-    this.downloadFile()
+    // this.downloadFile()
+    this.loadFileFromAssets()
 
     const fontStyle = {
       font: '40px Bangers',
@@ -28,7 +27,12 @@ export default class extends Phaser.State {
     }
   }
 
-  async downloadFile () {
+  loadFileFromAssets = () => {
+    this.load.text('musicxml', 'assets/musicxml/The Entertainer sax only.xml')
+    this.fileDownloaded = true
+  }
+
+  downloadFile = async () => {
     const storage = firebase.storage()
     const fileRef = storage.ref('songs/the-entertainer/The Entertainer sax only.xml')
     const url = await fileRef.getDownloadURL()

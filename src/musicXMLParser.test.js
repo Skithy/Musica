@@ -22,10 +22,10 @@ describe('parseMusicXML', () => {
       { pitchValue: 0, duration: 6 },
       { pitchValue: 48, duration: 6 },
       { pitchValue: 47, duration: 6 },
-      { pitchValue: 54, duration: 6 }
+      { pitchValue: 54, duration: 18 }
     ]
     const expectedTimeSignature = {
-      beats: 2,
+      beats: 4,
       beatType: 4
     }
     expect(musicData).toEqual(expectedMusicData)
@@ -45,13 +45,13 @@ const testXML = `
     <!--============== Test: Getting divisions + rests ==============-->
     <measure number="1">
       <attributes>
-        <divisions>256</divisions>
+        <divisions>512</divisions>
         <key>
           <fifths>0</fifths>
           <mode>major</mode>
         </key>
         <time>
-          <beats>2</beats>
+          <beats>4</beats>
           <beat-type>4</beat-type>
         </time>
       </attributes>
@@ -82,6 +82,19 @@ const testXML = `
           <octave>5</octave>
         </pitch>
         <duration>128</duration>
+        <tie type="start" />
+      </note>
+    </measure>
+     <!--============== Test: Tied notes ==============-->
+    <measure number="2">
+      <note>
+        <pitch>
+          <step>D</step>
+          <alter>1</alter>
+          <octave>5</octave>
+        </pitch>
+        <duration>512</duration>
+        <tie type="stop" />
       </note>
     </measure>
   </part>

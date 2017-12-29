@@ -49,7 +49,11 @@ const getMusicData = (baseNode): Array<INoteData> => {
   for (let node of baseNode.getElementsByTagName('note')) {
     const duration = getElementNum(node, 'duration') / divisions * 12
     const pitchValue = getPitchValue(node)
-    musicData.push({ pitchValue, duration })
+    if (hasElement(node, 'tie') && getElementAttribute(getElementNode(node, 'tie'), 'type') === 'stop') {
+      musicData[musicData.length - 1].duration += duration
+    } else {
+      musicData.push({ pitchValue, duration })
+    }
   }
   return musicData
 }
@@ -76,6 +80,8 @@ const getTimeSignature = (baseNode): ITimeSignature => {
   }
 }
 
-const getElementText = (node, element: string): string => node.getElementsByTagName(element)[0].textContent
+const getElementNode = (node, element: string) => node.getElementsByTagName(element)[0]
+const getElementText = (node, element: string): string => getElementNode(node, element).textContent
 const getElementNum = (node, element: string): number => parseInt(getElementText(node, element))
+const getElementAttribute = (node, attributeName: string) => Array.from(node.attributes).find(attribute => attribute.nodeName === attributeName).value
 const hasElement = (node, element: string): boolean => node.getElementsByTagName(element).length > 0
