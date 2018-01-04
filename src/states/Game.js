@@ -128,11 +128,9 @@ export default class extends Phaser.State {
     this.menu.drawRect(10, 10, this.world.width - 20, this.world.height - 20)
 
     this.menuConfigButton = this.add.button(this.world.centerX, 50, 'configImage', '', this, 2, 5, 0)
-    this.menuOptionButton = this.add.button(this.world.centerX, 90, 'dottedOptionImage', '', this, 2, 5, 0)    
-    this.menuDisplayButton = this.add.button(this.world.centerX, 130, 'displayImage', '', this, 2, 5, 0) 
+    this.menuOptionButton = this.add.button(this.world.centerX, 90, 'dottedOptionImage', '', this, 2, 5, 0)
+    this.menuDisplayButton = this.add.button(this.world.centerX, 130, 'displayImage', '', this, 2, 5, 0)
 
-    this.gfx.visible = false
-    
     this.pauseButton.destroy()
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.closeMenu, this, 2, 5, 0)    
   }
@@ -145,36 +143,32 @@ export default class extends Phaser.State {
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
     this.menu.clear()
 
-    this.resumeCountdown = this.add.text(this.world.centerX, this.world.centerY, ' ', { font: '10px Arial' })
-    this.resumeTimer = this.time.create(false)
+    this.resumeCountdownText = this.add.text(this.world.centerX, this.world.centerY, 'cat', { font: '10px Arial' })
+    this.resumeTimer = this.time.create()
+    this.resumeTimer.add(this.bpm / 60 * this.timeSignature.beats * Phaser.Timer.SECOND, this.resumePlay, this)
     this.resumeTimer.start()
-    for (let i = 0; i < 3; i++) {
-      this.time.events.add(this.time.SECOND * this.time.totalElapsedSeconds() + this.time.SECOND / (this.bpm / 60) * i, this.printCountdown(3 - i), this)
-    } 
-    this.time.events.add(this.time.SECOND * this.time.totalElapsedSeconds() + this.time.SECOND / (this.bpm / 60) * 4, this.resumePlay(), this)
   }
 
   resumePlay = () => {
     this.timer.resume()
-    //this.resumeCountdown.destroy()
+    this.resumeCountdownText.destroy()
     this.openedMenu = 0
   }
 
   create () {
+    this.startTimer()
     this.createBanner()
+    this.createBeatText()
     this.createMusicSheet()
     this.createIncomingMusic()
     this.createDebugText()
 
-    const fontStyle = {
-      font: '40px Bangers',
-      fill: '#77BFA3',
-      align: 'center'
-    }
-    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
-    this.beatText.padding.set(10, 16)
-    this.beatText.smoothed = false
-    this.beatText.anchor.setTo(0.5)
+    this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
+  }
+
+  startTimer = () => {
+    this.timer = this.time.create(false)
+    this.timer.start()
   }
 
   createBanner = () => {
@@ -187,6 +181,18 @@ export default class extends Phaser.State {
     this.banner.padding.set(10, 16)
     this.banner.smoothed = false
     this.banner.anchor.setTo(0.5)
+  }
+
+  createBeatText = () => {
+    const fontStyle = {
+      font: '40px Bangers',
+      fill: '#77BFA3',
+      align: 'center'
+    }
+    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
+    this.beatText.padding.set(10, 16)
+    this.beatText.smoothed = false
+    this.beatText.anchor.setTo(0.5)
   }
 
   createMusicSheet = () => {
@@ -208,7 +214,7 @@ export default class extends Phaser.State {
     createBarLines(this.barLinesGfx)
 
     this.gfx = this.add.graphics(0, 0)
-  
+
     this.startLineGfx = this.add.graphics(0, 0)
     createStartLine(this.startLineGfx)
   }
@@ -219,13 +225,6 @@ export default class extends Phaser.State {
       gfx.beginFill(0x00f754)
       const totalBeats = this.musicData.reduce((total, note) => total + note.duration, 0)
       for (let i = 0; i < totalBeats; i += 12) {
-        /*
-        if (this.openedMenu == 1 ) {
-          this.gfx.lineStyle(2, 0xFF0000, 1)
-          i--
-          continue
-        }
-        */
         if (i % (this.timeSignature.beats * 12) === 0) {
           drawLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220)
         } else {
@@ -272,50 +271,6 @@ export default class extends Phaser.State {
     this.noteLabels = this.add.group()
     createIncomingBarLines(this.playBox)
     createIncomingNotes(this.playBox, this.noteLabels)
-  }
-
-  printCountdown = (no) => {
-    this.resumeCountdown.text = `Ready in ${no}`
-  } 
-
-  create2 () {
-    this.game.time.advancedTiming = true
-
-    this.getMusicData()
-    this.requestUserMedia()
-
-    this.createBanner()
-    this.createMusicSheet()
-
-    this.createIncomingMusic()
-    
-    // Metronome circle showing beats
-    this.metronome = this.add.graphics(0, 0)
-    this.metronome.beginFill(0x000000)
-    this.metronome.lineStyle(1, 0x000000, 1)
-
-    // Menu button
-    this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
-
-    this.timerText = this.add.text(0, 0, ' ', { font: '10px Arial' })
-    this.timerText.padding.set(10, 16)
-    this.timerText.smoothed = false
-    const fontStyle = {
-      font: '40px Bangers',
-      fill: '#77BFA3',
-      align: 'center'
-    }
-    this.timer = this.time.create(false)
-    this.timer.start()
-    
-    this.beatText = this.add.text(this.world.centerX, this.game.height - 160, ' ', fontStyle)
-    this.beatText.padding.set(10, 16)
-    this.beatText.smoothed = false
-    this.beatText.anchor.setTo(0.5)
-
-  
-  }
-
     this.incomingNotes = this.add.group()
     this.incomingNotes.add(this.playBox)
     this.incomingNotes.add(this.noteLabels)
@@ -332,14 +287,21 @@ export default class extends Phaser.State {
   }
 
   update () {
+    if (this.resumeTimer && this.resumeTimer.running && this.resumeCountdownText) {
+      const beatCounter = Math.floor((this.bpm * this.resumeTimer.seconds / 60).toFixed(2))
+      this.resumeCountdownText.text = `${beatCounter}...`
+    }
+
+    if (this.openedMenu === 1) {
+      return
+    }
+
     // Removes previous draw and redraws when needed
     this.gfx.clear()
 
-    if (this.openedMenu != 1) {
-      this.animateNotes()
-    }
+    this.animateNotes()
 
-    this.debugText.text = `Elapsed time: ${this.timer.seconds} FPS: ${this.time.fps}`
+    this.debugText.text = `Elapsed time: ${this.timer.seconds.toFixed(2)} FPS: ${this.time.fps}`
     const beatCounter = Math.floor((this.bpm * this.timer.seconds / 60).toFixed(2))
     this.beats = beatCounter
     this.beatText.text = `Beat: ${beatCounter}`
