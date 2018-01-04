@@ -222,7 +222,7 @@ export default class extends Phaser.State {
     createBarLines(this.barLinesGfx)
 
     this.gfx = this.add.graphics(0, 0)
-
+  
     this.startLineGfx = this.add.graphics(0, 0)
     createStartLine(this.startLineGfx)
   }
@@ -233,6 +233,13 @@ export default class extends Phaser.State {
       gfx.beginFill(0x00f754)
       const totalBeats = this.musicData.reduce((total, note) => total + note.duration, 0)
       for (let i = 0; i < totalBeats; i += 12) {
+        /*
+        if (this.openedMenu == 1 ) {
+          this.gfx.lineStyle(2, 0xFF0000, 1)
+          i--
+          continue
+        }
+        */
         if (i % (this.timeSignature.beats * 12) === 0) {
           drawLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220)
         } else {
@@ -318,7 +325,9 @@ export default class extends Phaser.State {
     // Removes previous draw and redraws when needed
     this.gfx.clear()
 
-    this.animateNotes()
+    if (this.openedMenu != 1) {
+      this.animateNotes()
+    }
 
     this.debugText.text = `Elapsed time: ${this.timer.seconds.toFixed(2)} FPS: ${this.time.fps}`
     const beatCounter = Math.floor((this.bpm * this.timer.seconds / 60).toFixed(2))
