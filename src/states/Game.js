@@ -222,7 +222,7 @@ export default class extends Phaser.State {
     createBarLines(this.barLinesGfx)
 
     this.gfx = this.add.graphics(0, 0)
-  
+
     this.startLineGfx = this.add.graphics(0, 0)
     createStartLine(this.startLineGfx)
   }
@@ -325,9 +325,7 @@ export default class extends Phaser.State {
     // Removes previous draw and redraws when needed
     this.gfx.clear()
 
-    if (this.openedMenu != 1) {
-      this.animateNotes()
-    }
+    this.animateNotes()
 
     this.debugText.text = `Elapsed time: ${this.timer.seconds.toFixed(2)} FPS: ${this.time.fps}`
     const beatCounter = Math.floor((this.bpm * this.timer.seconds / 60).toFixed(2))
