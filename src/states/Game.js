@@ -10,6 +10,13 @@ const MIC_STATUS = {
   ALLOWED: 1,
   DENIED: 2
 }
+
+const GAME_STATE = {
+  GAME: 0,
+  MENU: 1,
+  RESUME_COUNTDOWN: 2
+}
+
 const BOX_SIZE = 20 // width of 1/12 of beat
 const START_POS = 100 // Start position of music score
 
@@ -52,7 +59,7 @@ export default class extends Phaser.State {
     this.bpm = 60
     this.boxSpeed = calculateScrollSpeed(this.bpm, BOX_SIZE)
     this.beats = 0
-    this.openedMenu = 0
+    this.gameState = GAME_STATE.GAME
 
     this.loadGameSettings()
     this.loadAudioContext()
@@ -118,7 +125,7 @@ export default class extends Phaser.State {
   }
 
   openMenu = () => {
-    this.openedMenu = 1
+    this.gameState = GAME_STATE.MENU
 
     this.timer.pause()
 
@@ -136,6 +143,7 @@ export default class extends Phaser.State {
   }
 
   closeMenu = () => {
+    this.gameState = GAME_STATE.RESUME_COUNTDOWN
     this.menuConfigButton.destroy()
     this.menuOptionButton.destroy()
     this.menuDisplayButton.destroy()
@@ -150,9 +158,9 @@ export default class extends Phaser.State {
   }
 
   resumePlay = () => {
+    this.gameState = GAME_STATE.GAME
     this.timer.resume()
     this.resumeCountdownText.destroy()
-    this.openedMenu = 0
   }
 
   create () {
@@ -282,17 +290,28 @@ export default class extends Phaser.State {
     this.debugText.smoothed = false
   }
 
+  playSound = (audioCtx: AudioContext) => {
+    const osc = this.audioCtx.createOscillator()
+    osc.type = 'square'
+    osc.frequency.value = 440
+    osc.connect(this.audioCtx.destination)
+    osc.start()
+    osc.stop(this.audioCtx.currentTime + 0.2)
+    osc.disconnect(this.audioCtx.destination)
+  }
+
   animateNotes = () => {
     this.incomingNotes.x -= this.boxSpeed
   }
 
   update () {
-    if (this.resumeTimer && this.resumeTimer.running && this.resumeCountdownText) {
+    if (this.gameState === GAME_STATE.RESUME_COUNTDOWN) {
       const beatCounter = Math.floor((this.bpm * this.resumeTimer.seconds / 60).toFixed(2))
-      this.resumeCountdownText.text = `${beatCounter}...`
+      this.resumeCountdownText.text = `Countdown: ${beatCounter}...`
+      return
     }
 
-    if (this.openedMenu === 1) {
+    if (this.gameState === GAME_STATE.MENU) {
       return
     }
 
