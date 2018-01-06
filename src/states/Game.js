@@ -26,6 +26,17 @@ const calculateScrollSpeed = (bpm: number, boxSize: number): number => {
   return boxSize * 12 * bpm / 3600
 }
 
+const destroy = (item) => { if (item) item.destroy() }
+
+const playSound = (audioCtx: AudioContext) => {
+  const osc = audioCtx.createOscillator()
+  osc.type = 'sine'
+  osc.frequency.value = 440
+  osc.connect(audioCtx.destination)
+  osc.start()
+  osc.stop(audioCtx.currentTime + 0.1)
+}
+
 export default class extends Phaser.State {
   notesdata = {
     '38': { colour: 0x880000, pos: 250, note: 'B' },
@@ -138,29 +149,31 @@ export default class extends Phaser.State {
     this.menuOptionButton = this.add.button(this.world.centerX, 90, 'dottedOptionImage', '', this, 2, 5, 0)
     this.menuDisplayButton = this.add.button(this.world.centerX, 130, 'displayImage', '', this, 2, 5, 0)
 
-    this.pauseButton.destroy()
+    destroy(this.pauseButton)
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.closeMenu, this, 2, 5, 0)    
   }
 
   closeMenu = () => {
     this.gameState = GAME_STATE.RESUME_COUNTDOWN
-    this.menuConfigButton.destroy()
-    this.menuOptionButton.destroy()
-    this.menuDisplayButton.destroy()
-    this.pauseButton.destroy()
+    destroy(this.menuConfigButton)
+    destroy(this.menuOptionButton)
+    destroy(this.menuDisplayButton)
+    destroy(this.pauseButton)
     this.pauseButton = this.add.button(this.world.width - 200, 10, 'pauseButton', this.openMenu, this, 2, 5, 0)
     this.menu.clear()
 
+    destroy(this.resumeCountdownText)
     this.resumeCountdownText = this.add.text(this.world.centerX, this.world.centerY, 'cat', { font: '10px Arial' })
+    destroy(this.resumeTimer)
     this.resumeTimer = this.time.create()
-    this.resumeTimer.add(this.bpm / 60 * this.timeSignature.beats * Phaser.Timer.SECOND, this.resumePlay, this)
+    this.resumeTimer.add(60 / this.bpm * this.timeSignature.beats * Phaser.Timer.SECOND, this.resumePlay, this)
     this.resumeTimer.start()
   }
 
   resumePlay = () => {
     this.gameState = GAME_STATE.GAME
+    destroy(this.resumeCountdownText)
     this.timer.resume()
-    this.resumeCountdownText.destroy()
   }
 
   create () {
@@ -176,6 +189,7 @@ export default class extends Phaser.State {
 
   startTimer = () => {
     this.timer = this.time.create(false)
+    this.timer.loop(60 / this.bpm / 12 * Phaser.Timer.SECOND, this.updateSubBeat, this)
     this.timer.start()
   }
 
@@ -208,7 +222,7 @@ export default class extends Phaser.State {
       gfx.beginFill(0xFF0000)
       gfx.lineStyle(2, 0x000000, 1)
       for (let i = 0; i < 5; i++) {
-        drawLine(gfx, 0, START_POS + i * 30, this.world.width, START_POS + i * 30)
+        drawLine(gfx, 0, 100 + i * 30, this.world.width, 100 + i * 30)
       }
     }
 
@@ -233,13 +247,6 @@ export default class extends Phaser.State {
       gfx.beginFill(0x00f754)
       const totalBeats = this.musicData.reduce((total, note) => total + note.duration, 0)
       for (let i = 0; i < totalBeats; i += 12) {
-        /*
-        if (this.openedMenu == 1 ) {
-          this.gfx.lineStyle(2, 0xFF0000, 1)
-          i--
-          continue
-        }
-        */
         if (i % (this.timeSignature.beats * 12) === 0) {
           drawLine(gfx, i * BOX_SIZE, 100, i * BOX_SIZE, 220)
         } else {
@@ -282,7 +289,7 @@ export default class extends Phaser.State {
       }
     }
 
-    this.playBox = this.add.graphics(100, 0)
+    this.playBox = this.add.graphics(START_POS, 0)
     this.noteLabels = this.add.group()
     createIncomingBarLines(this.playBox)
     createIncomingNotes(this.playBox, this.noteLabels)
@@ -297,14 +304,12 @@ export default class extends Phaser.State {
     this.debugText.smoothed = false
   }
 
-  playSound = (audioCtx: AudioContext) => {
-    const osc = this.audioCtx.createOscillator()
-    osc.type = 'square'
-    osc.frequency.value = 440
-    osc.connect(this.audioCtx.destination)
-    osc.start()
-    osc.stop(this.audioCtx.currentTime + 0.2)
-    osc.disconnect(this.audioCtx.destination)
+  updateSubBeat = () => {
+    this.beatText.text = `Beat: ${Math.floor(this.beats / 12)}`
+    if (this.beats % 12 === 0) {
+      playSound(this.audioCtx)
+    }
+    this.beats++
   }
 
   animateNotes = () => {
@@ -328,9 +333,6 @@ export default class extends Phaser.State {
     this.animateNotes()
 
     this.debugText.text = `Elapsed time: ${this.timer.seconds.toFixed(2)} FPS: ${this.time.fps}`
-    const beatCounter = Math.floor((this.bpm * this.timer.seconds / 60).toFixed(2))
-    this.beats = beatCounter
-    this.beatText.text = `Beat: ${beatCounter}`
 
     if (this.sendingAudioData === MIC_STATUS.REQUESTED) {
       this.banner.text = 'Waiting for microphone...'
